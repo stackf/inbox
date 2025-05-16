@@ -49,7 +49,7 @@ exports.handler = async function(event, context) {
         },
         body: JSON.stringify({
           channel: channel,
-          thread_ts: thread_ts,
+          // thread_ts: thread_ts,
           text: "Got your message! Thinking..."
         })
       });
