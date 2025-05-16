@@ -25,7 +25,7 @@ exports.handler = async function(event, context) {
       const text = slackEvent.text;
       const user = slackEvent.user;
       const channel = slackEvent.channel;
-      // const thread_ts = slackEvent.thread_ts || slackEvent.ts;
+      const thread_ts = slackEvent.thread_ts || slackEvent.ts;
   
       // TODO: Handle this text (send to OpenAI, etc.)
   
