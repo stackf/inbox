@@ -1,11 +1,14 @@
 exports.handler = async function(event, context) {
   
-  const slackTimestamp = req.headers['x-slack-request-timestamp'];
+  const slackTimestamp = event.headers['x-slack-request-timestamp'];
 
   // Protect against replay attacks
   const fiveMinutesAgo = Math.floor(Date.now() / 1000) - (60 * 5);
   if (parseInt(slackTimestamp) < fiveMinutesAgo) {
-    return res.status(400).send('Ignore this request (too old)');
+    return {
+      statusCode: 400,
+      body: 'Ignore this request (too old)'
+    };
   }
 
   // Parse the rawBody as JSON
