@@ -36,7 +36,6 @@ exports.handler = async function(event, context) {
   // Handle event callbacks here
   if (body.type === 'event_callback') {
     const slackEvent = body.event;
-    console.log('base_url', process.env.BASE_URL);
     await fetch(`${process.env.BASE_URL}/.netlify/functions/slack-chat-worker-background`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

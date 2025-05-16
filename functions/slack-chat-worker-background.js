@@ -1,3 +1,4 @@
+const getOpenAIMessagesFromSlackThread = require('./helpers/get-openai-messages-from-slack-thread');
 exports.handler = async function(event, context) {
   console.log("Slack chat worker received");
   
@@ -28,6 +29,9 @@ exports.handler = async function(event, context) {
       const thread_ts = slackEvent.thread_ts || slackEvent.ts;
   
       // TODO: Handle this text (send to OpenAI, etc.)
+      // 🧠 Get thread history and format for OpenAI
+      const openaiMessages = await getOpenAIMessagesFromSlackThread(channel, thread_ts);
+      console.log("Formatted OpenAI messages:", openaiMessages);
   
       console.log(`Received message: ${text} from user ${user}`);
   
