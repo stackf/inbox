@@ -6,7 +6,6 @@ const fetch = require('node-fetch');
 exports.handler = async function(event, context) {
   try {
     const accessToken = await getGmailAccessToken();
-    console.log(`Access token: ${accessToken}`);
 
     const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages', {
       headers: {

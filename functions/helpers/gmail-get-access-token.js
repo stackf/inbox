@@ -3,8 +3,7 @@ const fetch = require('node-fetch');
 async function getGmailAccessToken() {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
   const clientId = process.env.VITE_GMAIL_CLIENT_ID;
-  const clientSecret = process.env.VITE_GMAIL_CLIENT_SECRET;
-  console.log('getGmailAccessToken called with refresh token', !!refreshToken);
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
 
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -18,7 +17,6 @@ async function getGmailAccessToken() {
       grant_type: 'refresh_token',
     }),
   });
-    console.log('Response status:', response.status);
 
   if (!response.ok) {
     const errorText = await response.text();
