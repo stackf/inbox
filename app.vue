@@ -1,6 +1,7 @@
 <template>
   <div>
     <a :href="`https://accounts.google.com/o/oauth2/v2/auth?client_id=${gmailClientId}&redirect_uri=${gmailRedirectUri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&access_type=offline&prompt=consent`">Generate GMAIL Auth Token</a>
+    <p>{{ gmailRedirectUri }}</p>
   </div>
 </template>
 <script setup>

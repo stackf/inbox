@@ -66,3 +66,4 @@ The daily report and urgent messages from the HI assistent are posted in a slack
 * When the boss says he want to act on a certain email, the CHAT assistent creates a trello item in the Getting Things Done board
 * When the boss says a certain emails came from a customer, the CHAT assistent updates the system prompts for future reference
 * When the boss says a certain notification was mislabels in importancy, the CHAT assistent updates the system prompts for future reference
+
