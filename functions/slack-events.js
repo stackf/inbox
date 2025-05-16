@@ -41,7 +41,7 @@ exports.handler = async function(event, context) {
       console.log(`Received message: ${text} from user ${user}`);
   
       // Optionally reply back
-      await fetch('https://slack.com/api/chat.postMessage', {
+      const sendMessageResponse = await fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.SLACK_BOT_TOKEN}`,
@@ -53,6 +53,9 @@ exports.handler = async function(event, context) {
           text: "Got your message! Thinking..."
         })
       });
+      if(!sendMessageResponse.ok) {
+        console.error('Error sending message:', await sendMessageResponse.text());
+      }
     }
   
     // App mention
