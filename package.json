@@ -1,5 +1,7 @@
 {
-  "name": "nuxt-app",
+  "name": "inbox-ai-assistent",
+  "description": "AI assistant for managing Gmail inboxes using OpenAI Assistants API, with Slack notifications and Trello integration for GTD workflow",
+  "author": "stackfull.nl",
   "private": true,
   "scripts": {
     "build": "nuxt build",
