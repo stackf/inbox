@@ -1,9 +1,9 @@
 // netlify/functions/checkInbox.js
 
-import getGmailAccessToken from './helpers/gmail-get-access-token.js';
-import fetch from 'node-fetch';
+const getGmailAccessToken = require('./helpers/gmail-get-access-token');
+const fetch = require('node-fetch');
 
-export const handler = async function(event, context) {
+exports.handler = async function(event, context) {
   try {
     const accessToken = await getGmailAccessToken();
     console.log(`Access token: ${accessToken}`);

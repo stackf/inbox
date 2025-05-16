@@ -1,16 +1,16 @@
 // example importing of other functions (taken from another project):
 
-// import { handler as getInvestors } from './prototype-get-investors.js';
-// import { handler as getTotalRaised } from './prototype-get-total-raised.js';
-// import { handler as updateInvestorEmail } from './prototype-update-investor-email.js';
-// import { handler as updateInvestorAddress } from './prototype-update-investor-address.js';
-// import { handler as assistentFeatureRequest } from './prototype-assistent-feature-request.js';
-// import { handler as findCrmContactByInvestorId } from './prototype-find-crm-contact-by-investor-id.js';
-// import { handler as updateCrmContact } from './prototype-update-crm-contact.js';
-// import { handler as getTextSnippets } from './prototype-get-text-snippets.js';
-// import { handler as updateTextSnippets } from './prototype-update-text-snippets.js';
+// const getInvestors = require('./prototype-get-investors').handler;
+// const getTotalRaised = require('./prototype-get-total-raised').handler;
+// const updateInvestorEmail = require('./prototype-update-investor-email').handler;
+// const updateInvestorAddress = require('./prototype-update-investor-address').handler;
+// const assistentFeatureRequest = require('./prototype-assistent-feature-request').handler;
+// const findCrmContactByInvestorId = require('./prototype-find-crm-contact-by-investor-id').handler;
+// const updateCrmContact = require('./prototype-update-crm-contact').handler;
+// const getTextSnippets = require('./prototype-get-text-snippets').handler;
+// const updateTextSnippets = require('./prototype-update-text-snippets').handler;
 
-export const handler = async function (event, context) {
+exports.handler = async function (event, context) {
   // Parse input
   const parsedBody = JSON.parse(event.body)
   const { function_name, arguments: providedArguments } = parsedBody

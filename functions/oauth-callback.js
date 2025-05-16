@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   const queryParams = new URLSearchParams(event.rawQuery || event.queryStringParameters);
   const code = queryParams.get("code");
 

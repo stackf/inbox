@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 async function getGmailAccessToken() {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
@@ -29,4 +29,4 @@ async function getGmailAccessToken() {
   return data.access_token;
 }
 
-export default getGmailAccessToken;
+module.exports = getGmailAccessToken;
