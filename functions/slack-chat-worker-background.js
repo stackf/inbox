@@ -11,11 +11,6 @@ exports.handler = async function(event, context) {
   // Parse the body as JSON
   const { slackEvent } = JSON.parse(event.body);
 
-
-    // Log detailed event info
-    console.log(`New message from Slack:`, slackEvent);
-    console.log(`Event type: ${slackEvent.type}, subtype: ${slackEvent.subtype || 'none'}`);
-    
     // Check for bot messages to avoid loops
     if (slackEvent.bot_id) {
       console.log("Ignoring bot message to prevent loops");

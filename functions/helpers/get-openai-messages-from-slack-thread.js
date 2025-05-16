@@ -13,9 +13,7 @@ async function getOpenAIMessagesFromSlackThread(channel, thread_ts) {
       }
     });
 
-    // Debug response status
-    console.log('Slack API response status:', response.status, response.statusText);
-    
+    // Check if the response is ok (status code 200)
     if (!response.ok) {
       console.error("HTTP error fetching thread:", response.status, response.statusText);
       return [];
@@ -23,8 +21,6 @@ async function getOpenAIMessagesFromSlackThread(channel, thread_ts) {
   
     const data = await response.json();
     
-    // Debug full response data to see what we're getting
-    console.log('Slack API response data:', JSON.stringify(data).substring(0, 500) + '...');
     
     if (!data.ok) {
       console.error("Slack API error:", data.error, "Details:", data);
