@@ -835,7 +835,9 @@ exports.handler = async function (event, context) {
       case 'slack_send_message': {
         // Send message to Slack channel
         const { channel, text, threadTs } = parsedArguments;
-        return await slackSendMessage(channel, text, threadTs);
+        // Use environment variable for channel if it exists, otherwise use the provided channel
+        const targetChannel = process.env.SLACK_REPORT_CHANNEL_ID || channel;
+        return await slackSendMessage(targetChannel, text, threadTs);
       }
       
       case 'slack_get_thread_history': {

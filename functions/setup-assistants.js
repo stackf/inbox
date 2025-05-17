@@ -14,7 +14,7 @@ const openai = new OpenAI({
 const assistants = [
   {
     name: "Handle-Inbox",
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o-mini",
     promptFile: "hi.md",
     envVar: "HI_OPENAI_ASSISTANT_ID",
     tools: [
@@ -33,7 +33,7 @@ const assistants = [
   },
   {
     name: "Daily-Report",
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o",
     promptFile: "dare.md",
     envVar: "DARE_OPENAI_ASSISTANT_ID",
     tools: [
@@ -45,7 +45,7 @@ const assistants = [
   },
   {
     name: "Chat",
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o",
     promptFile: "chat.md",
     envVar: "CHAT_OPENAI_ASSISTANT_ID",
     tools: [
