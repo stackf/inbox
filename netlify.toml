@@ -1,3 +1,11 @@
 [build]
   publish = "dist"
   functions = './functions/'
+
+# Handle-Inbox cron job - runs every 15 minutes
+[functions.handle-inbox-cron]
+  schedule = "*/15 * * * *"
+
+# Daily-Report cron job - runs daily at 19:00 Amsterdam time (UTC+2, or 17:00 UTC)
+[functions.daily-report-cron]
+  schedule = "0 17 * * *"
