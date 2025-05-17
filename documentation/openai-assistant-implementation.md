@@ -182,9 +182,7 @@ When implementing this architecture in production:
 1. **Error Handling**: Add retries for transient failures
 2. **Monitoring**: Add logging and metrics for assistant performance
 3. **Thread Management**: Implement thread cleanup for old conversations
-4. **Security**: Safely store and rotate API keys
-5. **Rate Limiting**: Handle OpenAI API rate limits gracefully
-6. **Cost Management**: Monitor token usage to control costs
+4. **Rate Limiting**: Handle OpenAI API rate limits gracefully
 
 ## Next Steps
 
