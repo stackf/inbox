@@ -1,8 +1,12 @@
 // Handle-Inbox Cron Job
 // Runs every 15 minutes to process unread emails
 const OpenAIAssistant = require('./helpers/openai-assistant');
+// const { schedule } = require("@netlify/functions");
 
-exports.handler = async function(event, context) {
+
+
+
+const handler = async function(event, context) {
   try {
     // Check if this is a scheduled event (from cron)
     if (event.httpMethod === 'GET' && !event.headers['x-netlify-trigger']) {
@@ -65,3 +69,7 @@ exports.handler = async function(event, context) {
     };
   }
 };
+
+exports.handler = handler
+// Schedule the handler to run every 15 minutes
+// exports.handler = schedule('*/15 * * * *', handler);
