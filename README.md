@@ -75,7 +75,7 @@ BASE_URL=http://localhost:8888 # In development
 ### 4. Create Gmail Labels
 
 Create the following labels in your Gmail account:
-- `processed by HI`
+- `processed-by-hi`
 - `to-summarize`
 - `archive-in-3-days`
 
@@ -107,7 +107,7 @@ The function will output the assistant IDs, which will be stored automatically a
 
 The project uses three OpenAI Assistants:
 
-1. **Handle-Inbox (HI)**: Processes emails without the "processed by HI" label
+1. **Handle-Inbox (HI)**: Processes emails without the "processed-by-hi" label
 2. **Daily-Report (DARE)**: Creates summaries for emails labeled "to-summarize"
 3. **Chat**: Provides interactive communication via Slack
 
@@ -129,7 +129,7 @@ The HI assistant processes emails in the inbox by:
 - Labeling newsletters as `to-summarize` and `archive-in-3-days`
 - Notifying about important emails via Slack with draft responses
 - Categorizing notifications as urgent, important-not-urgent, or irrelevant
-- Applying the `processed by HI` label to all processed emails
+- Applying the `processed-by-hi` label to all processed emails
 
 ### Daily Report (runs daily at 19:00 Amsterdam time)
 The DARE assistant creates summary reports by:

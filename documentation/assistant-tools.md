@@ -42,7 +42,7 @@ Retrieves emails from the inbox with optional filters.
 {
   "function_name": "gmail_inbox_retrieval",
   "arguments": {
-    "labelFilter": ["!processed by HI", "INBOX"],
+    "labelFilter": ["!processed-by-hi", "INBOX"],
     "maxResults": 10,
     "includeContent": false
   }
@@ -64,7 +64,7 @@ Adds or removes labels from an email.
   "function_name": "gmail_label_email",
   "arguments": {
     "messageId": "18c42b37a9a8e8c1",
-    "addLabelIds": ["processed by HI", "to-summarize"],
+    "addLabelIds": ["processed-by-hi", "to-summarize"],
     "removeLabelIds": []
   }
 }

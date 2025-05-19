@@ -21,7 +21,7 @@ const assistants = [
       { type: "function", function: { name: "gmail_inbox_retrieval" } },
       { type: "function", function: { name: "gmail_label_email" } },
       { type: "function", function: { name: "gmail_archive_email" } },
-      { type: "function", function: { name: "gmail_forward_email" } },
+      { type: "function", function: { name: "gmail_send_to_bookkeeper" } },
       { type: "function", function: { name: "gmail_create_draft" } },
       { type: "function", function: { name: "gmail_get_message" } },
       { type: "function", function: { name: "gmail_get_attachment" } },
@@ -52,7 +52,7 @@ const assistants = [
       { type: "function", function: { name: "gmail_inbox_retrieval" } },
       { type: "function", function: { name: "gmail_label_email" } },
       { type: "function", function: { name: "gmail_archive_email" } },
-      { type: "function", function: { name: "gmail_forward_email" } },
+      { type: "function", function: { name: "gmail_send_to_bookkeeper" } },
       { type: "function", function: { name: "gmail_create_draft" } },
       { type: "function", function: { name: "gmail_get_message" } },
       { type: "function", function: { name: "gmail_get_attachment" } },
@@ -85,7 +85,7 @@ const getToolDefinitionWithSchema = (name) => {
         labelFilter: {
           type: "array",
           items: { type: "string" },
-          description: "Array of labels to filter by. Prefix with '!' to exclude labels. Example: ['INBOX', '!processed by HI']"
+          description: "Array of labels to filter by. Prefix with '!' to exclude labels. Example: ['INBOX', '!processed-by-hi']. The system will automatically convert label names to their IDs."
         },
         maxResults: {
           type: "integer",
@@ -112,13 +112,13 @@ const getToolDefinitionWithSchema = (name) => {
         addLabelIds: {
           type: "array",
           items: { type: "string" },
-          description: "Labels to add to the email. Common labels: 'INBOX', 'UNREAD', 'STARRED', 'IMPORTANT', 'SENT', 'TRASH', 'processed by HI', 'to-summarize', 'archive-in-3-days'.",
+          description: "Labels to add to the email. Only use our custom labels: 'processed-by-hi', 'to-summarize', 'archive-in-3-days'. Do NOT use Gmail system labels like 'INBOX', 'UNREAD', etc. directly.",
           default: []
         },
         removeLabelIds: {
           type: "array",
           items: { type: "string" },
-          description: "Labels to remove from the email.",
+          description: "Labels to remove from the email. Only use 'INBOX' to archive emails. Do not remove our custom labels directly.",
           default: []
         }
       };
@@ -137,16 +137,11 @@ const getToolDefinitionWithSchema = (name) => {
       break;
       
     case "gmail_forward_email":
-      description = "Forwards an email to another email address";
+      description = "DEPRECATED: Use gmail_send_to_bookkeeper instead. Forwards an email to the bookkeeping email address defined in BOOKKEEPING_EMAIL environment variable";
       schema.properties = {
         messageId: {
           type: "string",
           description: "The ID of the email to forward."
-        },
-        to: {
-          type: "string",
-          description: "Email address to forward to.",
-          format: "email"
         },
         subject: {
           type: "string",
@@ -157,7 +152,7 @@ const getToolDefinitionWithSchema = (name) => {
           description: "Optional text to add at the beginning of the forwarded email."
         }
       };
-      schema.required = ["messageId", "to"];
+      schema.required = ["messageId"];
       break;
       
     case "gmail_create_draft":
@@ -202,11 +197,22 @@ const getToolDefinitionWithSchema = (name) => {
       break;
       
     case "gmail_search_unsubscribe_link":
-      description = "Searches an email for an unsubscribe link";
+      description = "DEPRECATED: Extract unsubscribe links directly from message content. Searches an email for an unsubscribe link";
       schema.properties = {
         messageId: {
           type: "string",
           description: "The ID of the email to search for an unsubscribe link."
+        }
+      };
+      schema.required = ["messageId"];
+      break;
+      
+    case "gmail_send_to_bookkeeper":
+      description = "Sends an email with its attachments to the bookkeeping email address defined in BOOKKEEPING_EMAIL environment variable. Adds GMAIL_LABEL_ID_SENT_TO_BOOKKEEPING label when sent.";
+      schema.properties = {
+        messageId: {
+          type: "string",
+          description: "The ID of the email to send to bookkeeping."
         }
       };
       schema.required = ["messageId"];

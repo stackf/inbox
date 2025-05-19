@@ -25,7 +25,7 @@ Based on the README workflow scenarios, the OpenAI Assistant will need the follo
 ### 1. InboxRetrieval Tool
 - **Purpose**: Fetch emails from the inbox with specific filters
 - **Functionality**:
-  - Retrieve emails without "processed by HI" label
+  - Retrieve emails without "processed-by-hi" label
   - Filter by date range
   - Get email content, headers, and attachments
 - **API Endpoint**: `https://gmail.googleapis.com/gmail/v1/users/me/messages`
@@ -33,7 +33,7 @@ Based on the README workflow scenarios, the OpenAI Assistant will need the follo
 ### 2. EmailLabeling Tool
 - **Purpose**: Add/remove labels on emails
 - **Functionality**:
-  - Add "processed by HI" after processing
+  - Add "processed-by-hi" after processing
   - Add "to-summarize" for newsletters
   - Add "archive-in-X-days" for content to be archived later
 - **API Endpoint**: `https://gmail.googleapis.com/gmail/v1/users/me/messages/{id}/modify`

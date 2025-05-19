@@ -120,7 +120,7 @@ test('retrieves unprocessed emails', async () => {
 We'll implement the following tools:
 
 #### Gmail Tools
-- `getUnprocessedEmails`: Retrieve emails without "processed by HI" label
+- `getUnprocessedEmails`: Retrieve emails without "processed-by-hi" label
 - `getEmailsToSummarize`: Get emails with "to-summarize" label from last 24h
 - `labelEmail`: Add/remove labels to emails
 - `archiveEmail`: Move email to archive

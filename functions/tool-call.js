@@ -4,6 +4,9 @@ const getOpenAIMessagesFromSlackThread = require('./helpers/get-openai-messages-
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const path = require('path');
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 
 /**
  * Gmail API Functions
@@ -21,21 +24,47 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
     // Add label filter if provided
     let q = '';
     if (labelFilter && labelFilter.length > 0) {
+      console.log(`Original label filters: ${JSON.stringify(labelFilter)}`);
+      
       // For emails without the processed label
       if (labelFilter.some(label => label.startsWith('!'))) {
-        const excludeLabels = labelFilter.filter(label => label.startsWith('!')).map(label => label.substring(1));
+        const excludeLabels = labelFilter.filter(label => label.startsWith('!')).map(label => {
+          // Remove the '!' and map to ID if needed
+          const labelName = label.substring(1);
+          
+          // Special case for processed-by-hi label
+          if (labelName === 'processed-by-hi' && process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI) {
+            // Use direct ID query for this label
+            return process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI;
+          }
+          
+          return labelName;
+        });
+        
         excludeLabels.forEach(label => {
           q += `-label:${label} `;
         });
       }
       
       // For emails with specific labels
-      const includeLabels = labelFilter.filter(label => !label.startsWith('!'));
+      const includeLabels = labelFilter.filter(label => !label.startsWith('!')).map(labelName => {
+        // Map human-readable label names to IDs if needed
+        if (labelName === 'processed-by-hi' && process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI) {
+          return process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI;
+        } else if (labelName === 'to-summarize' && process.env.GMAIL_LABEL_ID_TO_SUMMARIZE) {
+          return process.env.GMAIL_LABEL_ID_TO_SUMMARIZE;
+        } else if (labelName === 'archive-in-3-days' && process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS) {
+          return process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS;
+        }
+        return labelName;
+      });
+      
       includeLabels.forEach(label => {
         q += `label:${label} `;
       });
       
       if (q) {
+        console.log(`Gmail search query: ${q.trim()}`);
         queryParams.append('q', q.trim());
       }
     }
@@ -55,6 +84,7 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
     
     const listData = await listResponse.json();
     const messages = listData.messages || [];
+
     
     // If content is not needed, return just the IDs
     if (!includeContent) {
@@ -91,10 +121,85 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
   }
 }
 
+// Helper function to map common label names to their IDs
+function mapLabelNameToId(labelName) {
+  // Define mappings for known labels
+  const labelMap = {
+    'processed-by-hi': process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI,
+    'to-summarize': process.env.GMAIL_LABEL_ID_TO_SUMMARIZE,
+    'archive-in-3-days': process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS
+  };
+  
+  // Return the mapped ID if available, otherwise return the original label
+  return labelMap[labelName] || labelName;
+}
+
+// Validate which labels can be added/removed
+function validateLabels(addLabels = [], removeLabels = []) {
+  // Valid custom labels that can be added
+  const validCustomLabels = ['processed-by-hi', 'to-summarize', 'archive-in-3-days'];
+  
+  // System labels that shouldn't be directly modified
+  const restrictedSystemLabels = ['UNREAD', 'STARRED', 'IMPORTANT', 'SENT', 'DRAFT', 'TRASH', 'SPAM'];
+  
+  // Check add labels
+  for (const label of addLabels) {
+    // Allow adding our custom labels
+    if (validCustomLabels.includes(label)) {
+      continue;
+    }
+    
+    // Prevent adding system labels directly
+    if (restrictedSystemLabels.includes(label)) {
+      throw new Error(`Cannot directly add system label: ${label}. Use appropriate Gmail API functions instead.`);
+    }
+  }
+  
+  // Check remove labels
+  for (const label of removeLabels) {
+    // Only allow removing INBOX label (for archiving)
+    if (label !== 'INBOX' && !restrictedSystemLabels.includes(label)) {
+      // Don't allow removing our custom labels either
+      if (validCustomLabels.includes(label)) {
+        throw new Error(`Cannot remove custom label: ${label}. These should be kept for tracking purposes.`);
+      }
+    }
+    
+    // Prevent dangerous removals
+    if (restrictedSystemLabels.includes(label)) {
+      throw new Error(`Cannot remove system label: ${label}. Use appropriate Gmail API functions instead.`);
+    }
+  }
+  
+  return true;
+}
+
 // Add/remove labels on an email
 async function gmailLabelEmail(messageId, addLabelIds = [], removeLabelIds = []) {
   try {
+    // Validate that the requested label operations are allowed
+    try {
+      validateLabels(addLabelIds, removeLabelIds);
+    } catch (validationError) {
+      console.error(`Label validation error: ${validationError.message}`);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ 
+          error: validationError.message,
+          code: 'INVALID_LABEL_OPERATION'
+        }),
+      };
+    }
+    
     const accessToken = await getGmailAccessToken();
+    
+    // Map label names to their IDs where applicable
+    const mappedAddLabelIds = addLabelIds.map(mapLabelNameToId);
+    const mappedRemoveLabelIds = removeLabelIds.map(mapLabelNameToId);
+    
+    console.log(`Modifying labels for message ${messageId}`);
+    console.log(`Adding labels: ${JSON.stringify(mappedAddLabelIds)}`);
+    console.log(`Removing labels: ${JSON.stringify(mappedRemoveLabelIds)}`);
     
     const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/modify`, {
       method: 'POST',
@@ -103,8 +208,8 @@ async function gmailLabelEmail(messageId, addLabelIds = [], removeLabelIds = [])
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        addLabelIds,
-        removeLabelIds,
+        addLabelIds: mappedAddLabelIds,
+        removeLabelIds: mappedRemoveLabelIds,
       }),
     });
     
@@ -114,6 +219,8 @@ async function gmailLabelEmail(messageId, addLabelIds = [], removeLabelIds = [])
     }
     
     const data = await response.json();
+    
+    console.log(`Successfully modified labels for message ${messageId}`);
     
     return {
       statusCode: 200,
@@ -137,9 +244,17 @@ async function gmailArchiveEmail(messageId) {
   return await gmailLabelEmail(messageId, [], ['INBOX']);
 }
 
-// Forward an email to another address
-async function gmailForwardEmail(messageId, to, subject, additionalContent = '') {
+// Forward an email to the bookkeeping address (DEPRECATED: Use sendToBookkeeper instead)
+async function gmailForwardEmail(messageId, subject = null, additionalContent = '') {
   try {
+    // Validate environment variable exists
+    const bookkeepingEmail = process.env.BOOKKEEPING_EMAIL;
+    if (!bookkeepingEmail) {
+      throw new Error('BOOKKEEPING_EMAIL environment variable not set. Please set this in your environment.');
+    }
+    
+    console.log(`Forwarding email ${messageId} to bookkeeping: ${bookkeepingEmail}`);
+    
     const accessToken = await getGmailAccessToken();
     
     // First, get the email content
@@ -194,7 +309,7 @@ async function gmailForwardEmail(messageId, to, subject, additionalContent = '')
       body: JSON.stringify({
         message: {
           raw: Buffer.from(
-            `To: ${to}\r\n` +
+            `To: ${bookkeepingEmail}\r\n` +
             `Subject: ${forwardSubject}\r\n` +
             `Content-Type: text/plain; charset=utf-8\r\n\r\n` +
             `${forwardBody}`
@@ -209,15 +324,16 @@ async function gmailForwardEmail(messageId, to, subject, additionalContent = '')
     }
     
     const draftData = await createDraftResponse.json();
+    console.log(`Draft created for forwarding to bookkeeping: ${draftData.id}`);
     
     // Send the draft as an email
-    const sendResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/drafts/${draftData.id}/send`, {
+    const sendResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/drafts/send`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ id: draftData.id }),
     });
     
     if (!sendResponse.ok) {
@@ -225,18 +341,23 @@ async function gmailForwardEmail(messageId, to, subject, additionalContent = '')
       throw new Error(`Failed to send email: ${sendResponse.status} - ${errorText}`);
     }
     
+    console.log(`Successfully forwarded email to bookkeeping: ${bookkeepingEmail}`);
+    
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        message: `Email forwarded to ${to}`,
+        message: `Email forwarded to bookkeeping (${bookkeepingEmail})`,
       }),
     };
   } catch (error) {
-    console.error('Error forwarding email:', error);
+    console.error('Error forwarding email to bookkeeping:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ 
+        error: error.message,
+        message: 'Failed to forward email to bookkeeping'
+      }),
     };
   }
 }
@@ -325,9 +446,10 @@ async function gmailCreateDraft(messageId, content) {
 }
 
 // Get full message content
-async function gmailGetMessage(messageId) {
+async function gmailGetMessage({messageId}) {
   try {
     const accessToken = await getGmailAccessToken();
+
     
     const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`, {
       headers: {
@@ -350,17 +472,22 @@ async function gmailGetMessage(messageId) {
     
     // Extract body content
     let body = '';
+    let textBody = '';
+    let htmlBody = '';
     let attachments = [];
     
     function processPart(part, depth = 0) {
       if (part.mimeType === 'text/plain' && part.body.data) {
         if (depth <= 1) { // Only use top-level or immediate child text parts
-          body += Buffer.from(part.body.data, 'base64').toString('utf-8');
+          const text = Buffer.from(part.body.data, 'base64').toString('utf-8');
+          body += text;
+          textBody += text;
         }
       } else if (part.mimeType === 'text/html' && part.body.data && body === '') {
         // Use HTML if plain text is not available, but strip tags
         const html = Buffer.from(part.body.data, 'base64').toString('utf-8');
         body = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        htmlBody += html;
       } else if (part.filename && part.body.attachmentId) {
         attachments.push({
           id: part.body.attachmentId,
@@ -387,6 +514,8 @@ async function gmailGetMessage(messageId) {
         internalDate: data.internalDate,
         headers,
         body,
+        textBody,
+        htmlBody,
         attachments,
         raw: data // Include raw data for advanced processing
       }),
@@ -435,7 +564,7 @@ async function gmailGetAttachment(messageId, attachmentId) {
   }
 }
 
-// Search for unsubscribe link in email
+// Search for unsubscribe link in email (DEPRECATED: Extract unsubscribe links directly from message content)
 async function gmailSearchUnsubscribeLink(messageId) {
   try {
     const accessToken = await getGmailAccessToken();
@@ -576,6 +705,71 @@ async function archiveOldEmails(days = 3) {
       body: JSON.stringify({ error: error.message }),
     };
   }
+}
+
+// send to bookkeeper
+async function sendToBookkeeper(messageId) {
+  try {
+    // gets original message with attachments
+    const messageData = await gmailGetMessage({ messageId })
+    const { textBody, htmlBody, attachments, headers } = JSON.parse(messageData.body);
+    console.log('text:', !!textBody, 'html:', !!htmlBody);
+    console.log('attachments:', attachments);
+    console.log('headers:', headers);
+    const sendgridAttachments = [];
+
+    for (const attachment of attachments) {
+      console.log('attachment:', attachment);
+      const attachmentData = await gmailGetAttachment(messageId, attachment.id);
+      const { data } = JSON.parse(attachmentData.body)
+      sendgridAttachments.push({
+        content: data,
+        filename: attachment.filename,
+        type: attachment.mimeType,
+        disposition: 'attachment',
+      })
+    }
+
+    const subject = `Fwd: ${headers['subject']}`;
+    const text = `---------- Forwarded by Inbox AI Assistant ---------\nFrom: ${headers['from']}\nSubject: ${headers['subject']}\n\n${textBody}`
+    const html = `<p>---------- Forwarded by Inbox AI Assistant ---------</p><p>From: ${headers['from']}</p><p>Subject: ${headers['subject']}</p><br>${htmlBody}`;
+    // send to bookkeeper with sendgrid
+    let emailData = {
+      to: process.env.BOOKKEEPING_EMAIL,
+      from: process.env.SENDGRID_FROM, // your verified sender
+      subject,
+      // text,
+      // html,
+      // attachments: sendgridAttachments,
+    };
+    if(sendgridAttachments.length > 0) {
+      emailData.attachments = sendgridAttachments;
+    }
+    if(!!textBody) {
+      emailData.text = text;
+    } else if (!!htmlBody) {
+      emailData.html = html;
+    }
+
+    await sgMail.send(emailData);
+
+    // add label GMAIL_LABEL_ID_SENT_TO_BOOKKEEPING
+    await gmailLabelEmail(messageId, [process.env.GMAIL_LABEL_ID_SENT_TO_BOOKKEEPING], []);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        success: true,
+        message: 'Email sent to bookkeeping successfully',
+      }),
+    }
+  } catch (err) {
+    console.error('Error sending to bookkeeping:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err?.message }),
+    };
+  }
+  
 }
 
 /**
@@ -802,9 +996,9 @@ exports.handler = async function (event, context) {
       }
       
       case 'gmail_forward_email': {
-        // Forward emails to another address
-        const { messageId, to, subject, additionalContent } = parsedArguments;
-        return await gmailForwardEmail(messageId, to, subject, additionalContent);
+        // Forward emails to bookkeeping
+        const { messageId, subject, additionalContent } = parsedArguments;
+        return await gmailForwardEmail(messageId, subject, additionalContent);
       }
       
       case 'gmail_create_draft': {
@@ -816,7 +1010,7 @@ exports.handler = async function (event, context) {
       case 'gmail_get_message': {
         // Get full message content (for categorization and processing)
         const { messageId } = parsedArguments;
-        return await gmailGetMessage(messageId);
+        return await gmailGetMessage({messageId});
       }
       
       case 'gmail_get_attachment': {
@@ -829,6 +1023,12 @@ exports.handler = async function (event, context) {
         // Search for unsubscribe link in email
         const { messageId } = parsedArguments;
         return await gmailSearchUnsubscribeLink(messageId);
+      }
+
+      case 'gmail_send_to_bookkeeper': {
+        // Send email to bookkeeping
+        const { messageId } = parsedArguments;
+        return await sendToBookkeeper(messageId);
       }
       
       // Slack API Tools

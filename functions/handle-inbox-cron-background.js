@@ -33,11 +33,11 @@ exports.handler = async function(event, context) {
 
     // Check if LIMIT_EMAIL_HANDLING environment variable exists and is a number
     const emailLimit = process.env.LIMIT_EMAIL_HANDLING;
-    let message = 'Please process my inbox according to your instructions. Filter for emails without the "processed by HI" label.';
+    let message = 'Please process my inbox according to your instructions. Filter for emails without the "processed-by-hi" label.';
     
     if (emailLimit && !isNaN(Number(emailLimit))) {
       const limit = Number(emailLimit);
-      message = `Please process only ${limit} email${limit > 1 ? 's' : ''} from my inbox according to your instructions. Filter for emails without the "processed by HI" label and limit to ${limit} email${limit > 1 ? 's' : ''} for this run.`;
+      message = `Please process only ${limit} email${limit > 1 ? 's' : ''} from my inbox according to your instructions. Filter for emails without the "processed-by-hi" label and limit to ${limit} email${limit > 1 ? 's' : ''} for this run.`;
     }
     
     // Add the instruction message to the thread

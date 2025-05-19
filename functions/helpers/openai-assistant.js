@@ -182,6 +182,14 @@ class OpenAIAssistant {
           console.log(`Error in tool call result: ${resultBody.error}`);
         }
         
+        // Log email subject when getting a message or handling email operations
+        if (name === 'gmail_get_message' && resultBody && resultBody.payload && resultBody.payload.headers) {
+          const subjectHeader = resultBody.payload.headers.find(h => h.name === 'Subject');
+          if (subjectHeader) {
+            console.log(`Processing email with subject: "${subjectHeader.value}"`);
+          }
+        }
+        
         toolOutputs.push({
           tool_call_id: toolCall.id,
           output: result.body
