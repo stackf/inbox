@@ -18,39 +18,52 @@ Efficiently process unprocessed emails in the inbox using a consistent set of ru
 ## Label Usage Guidelines
 - ONLY use our custom labels: `processed-by-hi`, `to-summarize`, `archive-in-3-days`
 - NEVER try to add or remove system labels like UNREAD, STARRED, etc.
-- For archiving, use the dedicated `gmailArchiveEmail` function
 
 ## Workflow Rules
 
 For each email in the inbox without the `processed-by-hi` label:
 
-### 1. Handle "archive-in-x-days" emails:
-- If the label `archive-in-x-days` is present and the email is older than X days, call the `Archive` tool.
+### 1. Email archiving:
+- Emails with `archive-in-3-days` label will be automatically archived after 3 days by the cron job.
+- Your role is only to apply the `archive-in-3-days` label to appropriate emails.
 
 ### 2. Invoices:
 - If the email has an invoice attachment, use `gmail_send_to_bookkeeper` to send it to the bookkeeping email address.
+- Do not notify the boss in Slack for emails sent to the bookkeeping email address
 
 ### 3. Newsletters:
-- If it's a newsletter (e.g., via `list-unsubscribe`, or typical sender patterns), label it with:
+- If it's a newsletter (e.g., via `list-unsubscribe`, or typical sender and content patterns), label it with:
   - `to-summarize`
   - `archive-in-3-days`
-- When handling newsletters, extract any unsubscribe link directly from the email content:
-  1. First, check for a `List-Unsubscribe` header in the email headers
-  2. If not found, look for common unsubscribe patterns in the HTML content:
-     - Links containing words like "unsubscribe", "opt-out", "optout", "remove"
-     - Example pattern: `href="https://...unsubscribe..."`
-  3. If you find an unsubscribe link, include it in your Slack notification for easy access
+- Important: Do not notify the boss in Slack about newsletters
+- Example of Newsletters:
+  - MT/Sprout Startups
+  - Your ThinkNimble CTO
 
-### 4. Customer / Important emails:
-- If the email appears to come from a customer, lead, or seems important and requires a human reply:
-  - Notify the boss via Slack (include sender, subject, and suggested action).
+### 4. Customer / Important emails from humans:
+- If the email appears to come from a customer, lead, or other human AND seems important AND requires a human reply:
+  - Notify the boss via Slack (include sender, subject, an executive summary and a suggested action).
   - Create a short and sweet draft reply in the email thread (use a friendly, professional tone).
+  - Important: When creating a draft reply, use reply in the same language as the received message
+  - Examples of Customers:
+    - Fundingteam / Mijnfunding: Cees, Mark, Benjamin, Wouter, Cornelis
+    - Earwax: Jan Rombout, Karin Tromop
+    - Online Huiswerkklas: Michiel van Gorp
+- Important: use above actions for human-sent emails, not received System Notifications
 
 ### 5. System Notifications:
 - Classify based on sender and content as one of:
+  - **Not-Important-Not-Urgent** → Label as `archive-in-3-days`, do NOT notify boss in Slack
+    - Known System Notifications to handle as Not-Important-Not-Urgent:
+      - Linear: you have unread notifications
+      - Moneybird Dagelijkse update
+      - Pipedrive summary of the day
+      - Customer Success Report
+      - Sentry Week Report
+  - **Important-Not-Urgent** → Label as `to-summarize`, do NOT notify boss in Slack
   - **Urgent** → Notify boss in Slack with option to add to Trello GTD board.
-  - **Important-Not-Urgent** → Label as `to-summarize`
-  - **Irrelevant** → Label as `archive-in-3-days`
+  
+  
 
 ## Final Step
 - Always apply the label `processed-by-hi` to prevent reprocessing.

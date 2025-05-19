@@ -3,7 +3,8 @@
 
 const OpenAIAssistant = require('./helpers/openai-assistant');
 
-exports.handler = async function(event, context) {
+// const { schedule } = require("@netlify/functions");
+const handler = async function(event, context) {
   try {
     // Check if this is a scheduled event (from cron)
     if (event.httpMethod === 'GET' && !event.headers['x-netlify-trigger']) {
@@ -59,3 +60,6 @@ exports.handler = async function(event, context) {
     };
   }
 };
+exports.handler = handler;
+// schedule daily at 19:00 Amsterdam time
+// exports.handler = schedule('0 19 * * *', handler);

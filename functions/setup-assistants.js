@@ -20,15 +20,12 @@ const assistants = [
     tools: [
       { type: "function", function: { name: "gmail_inbox_retrieval" } },
       { type: "function", function: { name: "gmail_label_email" } },
-      { type: "function", function: { name: "gmail_archive_email" } },
       { type: "function", function: { name: "gmail_send_to_bookkeeper" } },
       { type: "function", function: { name: "gmail_create_draft" } },
       { type: "function", function: { name: "gmail_get_message" } },
       { type: "function", function: { name: "gmail_get_attachment" } },
-      { type: "function", function: { name: "gmail_search_unsubscribe_link" } },
       { type: "function", function: { name: "slack_send_message" } },
-      { type: "function", function: { name: "trello_create_card" } },
-      { type: "function", function: { name: "archive_old_emails" } }
+      { type: "function", function: { name: "trello_create_card" } }
     ]
   },
   {
@@ -39,7 +36,6 @@ const assistants = [
     tools: [
       { type: "function", function: { name: "gmail_inbox_retrieval" } },
       { type: "function", function: { name: "gmail_get_message" } },
-      { type: "function", function: { name: "gmail_search_unsubscribe_link" } },
       { type: "function", function: { name: "slack_send_message" } }
     ]
   },
@@ -56,7 +52,6 @@ const assistants = [
       { type: "function", function: { name: "gmail_create_draft" } },
       { type: "function", function: { name: "gmail_get_message" } },
       { type: "function", function: { name: "gmail_get_attachment" } },
-      { type: "function", function: { name: "gmail_search_unsubscribe_link" } },
       { type: "function", function: { name: "slack_send_message" } },
       { type: "function", function: { name: "slack_get_thread_history" } },
       { type: "function", function: { name: "trello_create_card" } },
@@ -308,7 +303,7 @@ const getToolDefinitionWithSchema = (name) => {
       
     // Special Tools
     case "archive_old_emails":
-      description = "Archives emails labeled with archive-in-x-days that are older than x days";
+      description = "DEPRECATED: This functionality is now handled directly in the cron job. Archives emails labeled with archive-in-x-days that are older than x days";
       schema.properties = {
         days: {
           type: "integer",

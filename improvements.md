@@ -38,5 +38,31 @@ Implementation complete:
   3. Include found links in Slack notifications
 - This approach eliminates an extra API call and leverages existing content already available to the assistant
 
-3. 
+3. ✅ Automate Email Archiving (COMPLETED)
+The assistant previously had to look for emails with `archive-in-3-days` label that were older than 3 days, and manually archive them. This has now been programmatically implemented in the cron job:
+
+Implementation:
+- Added direct archiving functionality to `handle-inbox-cron-background.js` to run before the assistant processes emails
+- This new function:
+  - Looks for emails with the `GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS` label
+  - Finds emails older than 3 days (72 hours)
+  - Automatically archives them by removing the INBOX label
+- Updated the system prompt to clarify that the assistant only needs to apply the label, not handle archiving
+- This approach will:
+  - Reduce the number of API calls the assistant needs to make
+  - Make archiving more reliable by handling it directly in the code
+  - Simplify the assistant's workflow
+
+Required environment variables:
+- GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS - The Gmail label ID for the archive-in-3-days label
+
+Additional changes:
+- Completely removed all deprecated tools from all assistant configurations:
+  - Removed `archive_old_emails` from Handle-Inbox assistant 
+  - Removed `gmail_search_unsubscribe_link` from all assistants
+  - Removed `gmail_forward_email` from all assistants
+- Marked deprecated functions in tool-call.js and schema definitions in setup-assistants.js
+- This ensures the assistants only have access to the current, supported tools
+
+4. 
  

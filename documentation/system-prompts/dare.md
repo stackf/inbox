@@ -17,6 +17,12 @@ Summarize emails in an informative, engaging, and high-signal format. Avoid repe
 - Identify interesting topics (based on sender, subject, and content).
 - For each, create a **descriptive headline** and a link (if available).
 - Skip uninteresting topics, especially those flagged as irrelevant by previous feedback.
+- Share unsubscribe links: extract any unsubscribe link directly from the email content:
+  1. First, check for a `List-Unsubscribe` header in the email headers
+  2. If not found, look for common unsubscribe patterns in the HTML content:
+     - Links containing words like "unsubscribe", "opt-out", "optout", "remove"
+     - Example pattern: `href="https://...unsubscribe..."`
+  3. If you find an unsubscribe link, include it in your Slack notification for easy access
 
 #### 2. Notifications (important or urgent)
 - Create a short summary and attach a descriptive link if available.

@@ -22,7 +22,7 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
     if (maxResults) queryParams.append('maxResults', maxResults);
     
     // Add label filter if provided
-    let q = '';
+    let q = 'in:inbox';
     if (labelFilter && labelFilter.length > 0) {
       console.log(`Original label filters: ${JSON.stringify(labelFilter)}`);
       
@@ -33,34 +33,34 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
           const labelName = label.substring(1);
           
           // Special case for processed-by-hi label
-          if (labelName === 'processed-by-hi' && process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI) {
-            // Use direct ID query for this label
-            return process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI;
-          }
+          // if (labelName === 'processed-by-hi' && process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI) {
+          //   // Use direct ID query for this label
+          //   return process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI;
+          // }
           
           return labelName;
         });
         
         excludeLabels.forEach(label => {
-          q += `-label:${label} `;
+          q += ` -label:${label} `;
         });
       }
       
       // For emails with specific labels
       const includeLabels = labelFilter.filter(label => !label.startsWith('!')).map(labelName => {
         // Map human-readable label names to IDs if needed
-        if (labelName === 'processed-by-hi' && process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI) {
-          return process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI;
-        } else if (labelName === 'to-summarize' && process.env.GMAIL_LABEL_ID_TO_SUMMARIZE) {
-          return process.env.GMAIL_LABEL_ID_TO_SUMMARIZE;
-        } else if (labelName === 'archive-in-3-days' && process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS) {
-          return process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS;
-        }
+        // if (labelName === 'processed-by-hi' && process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI) {
+        //   return process.env.GMAIL_LABEL_ID_PROCESSED_BY_HI;
+        // } else if (labelName === 'to-summarize' && process.env.GMAIL_LABEL_ID_TO_SUMMARIZE) {
+        //   return process.env.GMAIL_LABEL_ID_TO_SUMMARIZE;
+        // } else if (labelName === 'archive-in-3-days' && process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS) {
+        //   return process.env.GMAIL_LABEL_ID_ARCHIVE_IN_3_DAYS;
+        // }
         return labelName;
       });
       
       includeLabels.forEach(label => {
-        q += `label:${label} `;
+        q += ` label:${label} `;
       });
       
       if (q) {
@@ -70,6 +70,7 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
     }
     
     // Get message list
+    console.log('Get message list:', `https://gmail.googleapis.com/gmail/v1/users/me/messages?${queryParams.toString()}`)
     const listUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?${queryParams.toString()}`;
     const listResponse = await fetch(listUrl, {
       headers: {
@@ -651,7 +652,7 @@ async function gmailSearchUnsubscribeLink(messageId) {
   }
 }
 
-// Archive emails labeled with archive-in-x-days that are older than x days
+// Archive emails labeled with archive-in-x-days that are older than x days (DEPRECATED: This functionality is now handled directly in the cron job)
 async function archiveOldEmails(days = 3) {
   try {
     const accessToken = await getGmailAccessToken();
@@ -1010,7 +1011,14 @@ exports.handler = async function (event, context) {
       case 'gmail_get_message': {
         // Get full message content (for categorization and processing)
         const { messageId } = parsedArguments;
-        return await gmailGetMessage({messageId});
+        const messageData = await gmailGetMessage({messageId});
+        try {
+          const { headers } = JSON.parse(messageData.body);
+          console.log('retrieved message:', headers['subject']);
+        } catch (err) {
+          console.log('could not log retrieved message subject')
+        }
+        return messageData;
       }
       
       case 'gmail_get_attachment': {
