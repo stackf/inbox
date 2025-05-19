@@ -4,7 +4,6 @@ const OpenAIAssistant = require('./helpers/openai-assistant');
 const getGmailAccessToken = require('./helpers/gmail-get-access-token');
 // const { schedule } = require("@netlify/functions");
 
-
 // Function to archive emails with archive-in-3-days label that are older than 3 days
 async function archiveOldEmailsWithLabel() {
   try {
@@ -116,10 +115,7 @@ const handler = async function(event, context) {
   try {
     // Check if this is a scheduled event (from cron)
     if (event.httpMethod === 'GET' && !event.headers['x-netlify-trigger']) {
-      return {
-        statusCode: 401,
-        body: 'Unauthorized'
-      };
+      return // Ignore non-scheduled events
     }
 
     console.log('Starting Handle-Inbox cron job');
@@ -161,12 +157,10 @@ const handler = async function(event, context) {
     // Run the assistant and handle all tool calls automatically
     const result = await assistant.run();
     
-    console.log('Handle-Inbox cron job completed successfully');
+    console.log('Handle-Inbox cron job completed successfully', result);
     
     // Return result
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
+    console.log(JSON.stringify({
         message: 'Handle-Inbox cron job completed successfully',
         threadId: assistant.threadId,
         archiveResult: {
@@ -174,14 +168,10 @@ const handler = async function(event, context) {
           totalFound: archiveResult.totalFound
         },
         assistantResult: result
-      })
-    };
+    }, null, 2))
   } catch (error) {
     console.error('Error in Handle-Inbox cron job:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
+    return
   }
 };
 

@@ -53,15 +53,21 @@ For each email in the inbox without the `processed-by-hi` label:
 
 ### 5. System Notifications:
 - Classify based on sender and content as one of:
-  - **Not-Important-Not-Urgent** → Label as `archive-in-3-days`, do NOT notify boss in Slack
+  - **Not-Important-Not-Urgent** 
+    - Scenario: System notification that do not absolutely require the boss' attention, everything keeps working fine if this System Notification is temporarely ignored
+    - Actions: → Label as `archive-in-3-days`, do NOT notify boss in Slack
     - Known System Notifications to handle as Not-Important-Not-Urgent:
       - Linear: you have unread notifications
       - Moneybird Dagelijkse update
       - Pipedrive summary of the day
       - Customer Success Report
       - Sentry Week Report
-  - **Important-Not-Urgent** → Label as `to-summarize`, do NOT notify boss in Slack
-  - **Urgent** → Notify boss in Slack with option to add to Trello GTD board.
+  - **Important-Not-Urgent**
+    - Scenario: System notification that absolutely requires the boss' attention, but it is ok if the boss sees it end-of-day or tomorrow
+    - Actions: → Label as `to-summarize`, do NOT notify boss in Slack
+  - **Urgent** 
+    - Scenario: System notification that absolutely requires the boss' attention and the boss needs to see it As Soon As Possible.
+    - Actions: → Notify boss in Slack with an executive summary.
   
   
 

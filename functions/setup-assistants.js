@@ -14,7 +14,7 @@ const openai = new OpenAI({
 const assistants = [
   {
     name: "Handle-Inbox",
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     promptFile: "hi.md",
     envVar: "HI_OPENAI_ASSISTANT_ID",
     tools: [

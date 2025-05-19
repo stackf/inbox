@@ -20,7 +20,7 @@ This approach allows for:
 
 | Assistant | Model       | Response Format | Temperature | Top P | Tools                           |
 |-----------|-------------|----------------|-------------|-------|--------------------------------|
-| HI        | gpt-4o-mini | JSON           | 0.2         | 0.9   | None or File Search             |
+| HI        | gpt-4o      | JSON           | 0.2         | 0.9   | None or File Search             |
 | DARE      | gpt-4o      | JSON           | 0.5         | 1.0   | Code Interpreter (optional)     |
 | CHAT      | gpt-4o      | Natural text   | 0.6         | 1.0   | File Search + Code Interpreter  |
 

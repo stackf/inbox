@@ -70,7 +70,7 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
     }
     
     // Get message list
-    console.log('Get message list:', `https://gmail.googleapis.com/gmail/v1/users/me/messages?${queryParams.toString()}`)
+    console.log('Get message list')
     const listUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?${queryParams.toString()}`;
     const listResponse = await fetch(listUrl, {
       headers: {
@@ -85,6 +85,7 @@ async function gmailInboxRetrieval(labelFilter = [], maxResults = 10, includeCon
     
     const listData = await listResponse.json();
     const messages = listData.messages || [];
+    console.log(`Found ${messages.length} messages`);
 
     
     // If content is not needed, return just the IDs
